@@ -32,15 +32,18 @@ PORT = 65432
 def receive_data(s):
     while True:
         data = s.recv(1024).decode('utf-8')
-        data = decode(data)
+        decode(data)
         if not data:
             break
-        print(f"Reçu du PC: {data}")
+        #print(f"Reçu du PC: {data}")
 
 def send_data(s):
     while True:
-        data_encoded = data_compas = compas(kalman_pitch, kalman_roll, mpu, dt ) # tuple pitch, roll
-        s.sendall(data_encoded.encode('utf-8'))
+        engine_state = [10,10, 20,20]
+
+        data_compas = encode_data(compas(kalman_pitch, kalman_roll, mpu, dt ), engine_state)  # tuple pitch, roll; engine_state array
+
+        s.sendall(data_compas.encode('utf-8'))
         time.sleep(0.2)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -58,8 +61,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     send_thread.join()
 
 
-def decode(data): # paramatre : string data_encoded
-	trust = float(data)
-def encode(): # retourne une string data_encoded
+def decode(data): # parametre : string data_encoded
+    data = data.split(";")
+    print(f'trust: {data[0]} roll: {data[1]} pitch: {data[2]}')
+     
+def encode_data(mpu, engine_state): # retourne une string data_encoded
 	
-	return data_compas
+    data = ';'.join(mpu)+';'.join(engine_state)
+    return data
