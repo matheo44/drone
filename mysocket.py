@@ -29,18 +29,33 @@ kalman_roll.angle = roll
 HOST = '192.168.1.54'  # IP du Raspberry Pi
 PORT = 65432
 
+
+def encode_data(mpu_data, engine_state): # retourne une string data_encoded
+	
+    data = mpu_data+";"+';'.join(engine_state)
+    return data
+
+def decode(data): # parametre : string data_encoded
+    data = data.split(";")
+    print(f'trust: {data[0]} roll: {data[1]} pitch: {data[2]}')
+     
+
+
 def receive_data(s):
     while True:
         data = s.recv(1024).decode('utf-8')
-        data = decode(data)
+        decode(data)
         if not data:
             break
-        print(f"Reçu du PC: {data}")
+        #print(f"Reçu du PC: {data}")
 
 def send_data(s):
     while True:
-        data_encoded = data_compas = compas(kalman_pitch, kalman_roll, mpu, dt ) # tuple pitch, roll
-        s.sendall(data_encoded.encode('utf-8'))
+        engine_state = ["10","10","20","20"]
+        mpu_data = compas(kalman_pitch, kalman_roll, mpu, dt )
+        data_rpi = encode_data(mpu_data, engine_state)
+
+        s.sendall(data_rpi.encode('utf-8'))
         time.sleep(0.2)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -58,8 +73,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     send_thread.join()
 
 
-def decode(data): # paramatre : string data_encoded
-	trust = float(data)
-def encode(): # retourne une string data_encoded
-	
-	return data_compas
